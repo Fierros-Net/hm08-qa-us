@@ -59,17 +59,22 @@ module.exports = {
         await this.fillPhoneNumber(phoneNumber);
         await browser.setupInterceptor();
         await $(this.nextButton).click();
-        await browser.pause(2000);
         const codeField = await $(this.codeField);
+        await codeField.waitForDisplayed();
+        await browser.waitUntil(async () => {
+            const requests = await browser.getRequests();
+            return requests.length === 1;
+        });
+
         const requests = await browser.getRequests();
-        await expect(requests.length).toBe(1)
-        const code = await requests[0].response.body.code
-        await codeField.setValue(code)
-        await $(this.confirmButton).click()
+        const code = requests[0].response.body.code;
+        await codeField.setValue(code);
+        const confirmButton = await $(this.confirmButton);
+        await confirmButton.click();
     },
 
     setURLAddress: async function () {
-        //for easier address filling
+        //for easier address and filling
         await browser.url('/');
         await this.fillAddresses('East 2nd Street, 601', '1300 1st St');
     },
